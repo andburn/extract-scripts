@@ -4,6 +4,7 @@ import sys
 import unitypack
 from argparse import ArgumentParser
 from unitypack.environment import UnityEnvironment
+from card_tile import generate_tile_image
 
 
 def handle_asset(asset, textures, cards):
@@ -63,7 +64,7 @@ def extract_info(files):
 	return cards, textures
 
 
-def save_image(texture, name, prefix, args):
+def save_image(image, name, prefix, args):
 	dirname = os.path.join(args.outdir, prefix)
 	if not os.path.exists(dirname):
 		os.makedirs(dirname)
@@ -72,12 +73,11 @@ def save_image(texture, name, prefix, args):
 		return
 
 	print("%r -> %r" % (name, path))
-	texture.image.save(path)
+	image.save(path)
 
 
 def process_tile_texture(texture, tile):
-	print(tile)
-	raise NotImplementedError
+	return generate_tile_image(texture.image, tile)
 
 
 def main():
@@ -109,7 +109,7 @@ def main():
 		pptr = textures[path]
 		texture = pptr.resolve()
 
-		save_image(texture, id, by_id_dir, args)
+		save_image(texture.image, id, by_id_dir, args)
 
 		if values["tile"]:
 			tile_texture = process_tile_texture(texture, values["tile"])
