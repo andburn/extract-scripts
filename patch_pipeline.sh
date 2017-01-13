@@ -48,7 +48,7 @@ HSBUILDDIR="$BUILDDIR/extracted/$BUILD"
 DOWNLOAD_BIN="$HOME/bin/ngdp-get"
 
 # ILSpy decompiler script
-DECOMPILER_BIN="mono $BASEDIR/decompiler/build/decompile.exe"
+DECOMPILER_BIN="$BASEDIR/decompiler/build/decompile.exe"
 
 DECOMPILED_DIR="$BUILDDIR/decompiled/$BUILD"
 
@@ -175,7 +175,8 @@ function decompile_code() {
 	acdll="$HSBUILDDIR/Hearthstone_Data/Managed/Assembly-CSharp.dll"
 	acfdll="$HSBUILDDIR/Hearthstone_Data/Managed/Assembly-CSharp-firstpass.dll"
 
-	"$DECOMPILER_BIN" "$acdll" "$acfdll" "$DECOMPILED_DIR"
+	mono "$DECOMPILER_BIN" "$acdll" "$DECOMPILED_DIR"
+	mono "$DECOMPILER_BIN" "$acfdll" "$DECOMPILED_DIR"
 }
 
 
