@@ -20,6 +20,12 @@ BUILDDIR="$BASEDIR/build"
 # Directory where processed CardDefs.xml go
 PROCESSED_DIR="$BUILDDIR/processed/$BUILD"
 
+# Git repositories
+HEARTHSTONEJSON_GIT="$BUILDDIR/HearthstoneJSON"
+HSFONTS_GIT="$BUILDDIR/hs-fonts.git"
+HSCODE_GIT="$BASEDIR/hscode.git"
+HSDATA_GIT="$BASEDIR/hsdata.git"
+
 # Directory storing the 'hsb' blte config
 HSBDIR="$DATADIR/hsb"
 
@@ -31,9 +37,6 @@ HS_RAW_BUILDDIR="$DATADIR/data/ngdp/hsb/$BUILD"
 
 # Directory that contains card textures
 CARDARTDIR="$BUILDDIR/card-art"
-
-# HearthstoneJSON git repository
-HEARTHSTONEJSON_GIT="$BUILDDIR/HearthstoneJSON"
 
 # HearthstoneJSON file generator
 HEARTHSTONEJSON_BIN="$HEARTHSTONEJSON_GIT/generate.sh"
@@ -70,10 +73,6 @@ SMARTDIFF_BIN="$BASEDIR/smartdiff_cardxml.py"
 # Smartdiff output file
 SMARTDIFF_OUT="$HOME/smartdiff-$BUILD.txt"
 
-# hscode/hsdata git repositories
-HSCODE_GIT="$BASEDIR/hscode.git"
-HSDATA_GIT="$BASEDIR/hsdata.git"
-
 # CardDefs.xml path for the build
 CARDDEFS_XML="$HSDATA_GIT/CardDefs.xml"
 
@@ -94,10 +93,14 @@ function upgrade_venv() {
 
 function update_repositories() {
 	echo "Updating repositories"
-	repos=("$BASEDIR" "$HEARTHSTONEJSON_GIT" "$HSDATA_GIT" "$HSCODE_GIT")
+	repos=("$BASEDIR" "$HEARTHSTONEJSON_GIT" "$HSFONTS_GIT" "$HSDATA_GIT" "$HSCODE_GIT")
 
 	if [[ ! -d "$HEARTHSTONEJSON_GIT" ]]; then
 		git clone git@github.com:HearthSim/HearthstoneJSON.git "$HEARTHSTONEJSON_GIT"
+	fi
+
+	if [[ ! -d "$HSFONTS_GIT" ]]; then
+		git clone git@github.com:HearthSim/hs-fonts.git "$HSFONTS_GIT"
 	fi
 
 	if [[ ! -d "$HSDATA_GIT" ]]; then
