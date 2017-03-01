@@ -158,8 +158,12 @@ function process_cardxml() {
 	outfile="$PROCESSED_DIR/CardDefs.xml"
 	datadir="$HSBUILDDIR/Data"
 	dbf=$(find -L "$HSBUILDDIR" -name DBF -type d)
+	unitydbf=$(find -L "$HSBUILDDIR" -name "dbf.unity3d" -type f)
 
-	if [[ ! -z $dbf ]]; then
+	if [[ ! -z $unitydbf ]]; then
+		cp -rf "$dbf" -t "$PROCESSED_DIR"
+		"$PROCESS_CARDXML_BIN" $(find -L "$datadir" -name 'card*.unity3d' -or -name "dbf.unity3d" -type f) -o "$outfile" --dbf-dir="$dbf"
+	elif [[ ! -z $dbf ]]; then
 		cp -rf "$dbf" -t "$PROCESSED_DIR"
 		"$PROCESS_CARDXML_BIN" $(find -L "$datadir" -name 'card*.unity3d' -type f) -o "$outfile" --dbf-dir="$dbf"
 	else

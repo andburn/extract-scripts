@@ -10,7 +10,7 @@ from xml.dom import minidom
 from lxml import etree as ElementTree
 from hearthstone import cardxml
 from hearthstone.dbf import Dbf
-from hearthstone.enums import GameTag
+from hearthstone.enums import GameTag, Locale
 
 
 MISSING_HERO_POWERS = {
@@ -58,6 +58,19 @@ def guess_spellpower(text):
 	return int(sre.groups()[0])
 
 
+def unity_dbf_locale_to_dict(data):
+	locales = data.get("m_locales", [])
+	locvalues = data.get("m_locValues", [])
+	# loc_id = data["m_locId"]
+	ret = {}
+
+	for loc, val in zip(locales, locvalues):
+		loc_enum = Locale(loc)
+		ret[loc_enum.name] = val
+
+	return ret
+
+
 class CardXMLProcessor:
 	unity3d_filenames = [
 		"cards.unity3d",
@@ -68,12 +81,12 @@ class CardXMLProcessor:
 	]
 
 	tag_dbf_localized_columns = [
-		(GameTag.CARDNAME, "NAME"),
-		(GameTag.CARDTEXT_INHAND, "TEXT_IN_HAND"),
-		(GameTag.FLAVORTEXT, "FLAVOR_TEXT"),
-		(GameTag.HOW_TO_EARN, "HOW_TO_GET_CARD"),
-		(GameTag.HOW_TO_EARN_GOLDEN, "HOW_TO_GET_GOLD_CARD"),
-		(GameTag.TARGETING_ARROW_TEXT, "TARGET_ARROW_TEXT"),
+		(GameTag.CARDNAME, "NAME", "m_Name"),
+		(GameTag.CARDTEXT_INHAND, "TEXT_IN_HAND", "m_TextInHand"),
+		(GameTag.FLAVORTEXT, "FLAVOR_TEXT", "m_FlavorText"),
+		(GameTag.HOW_TO_EARN, "HOW_TO_GET_CARD", "m_HowToGetCard"),
+		(GameTag.HOW_TO_EARN_GOLDEN, "HOW_TO_GET_GOLD_CARD", "m_HowToGetGoldCard"),
+		(GameTag.TARGETING_ARROW_TEXT, "TARGET_ARROW_TEXT", "m_TargetArrowText"),
 	]
 
 	def __init__(self):
@@ -227,32 +240,36 @@ class CardXMLProcessor:
 		for record in dbf.records:
 			id = record["ID"]
 			card_id = record["NOTE_MINI_GUID"]
-			self.dbf_ids[id] = card_id
-
-			long_guid = record.get("LONG_GUID")
-			if long_guid:
-				self.guids[long_guid] = card_id
+			long_guid = record.get("LONG_GUID", "")
+			hero_power_id = record.get("HERO_POWER_ID")
+			artist = record.get("ARTIST_NAME", "") or ""
 
 			if apply_locstrings:
 				self.entity_strings[card_id] = {}
-				for tag, column in self.tag_dbf_localized_columns:
+				for tag, column, _ in self.tag_dbf_localized_columns:
 					r = record.get(column) or {}
 					self.entity_strings[card_id][tag] = r
 
-				# Artist name is not localized in the new layout
-				artist = record.get("ARTIST_NAME") or ""
-				self.entity_strings[card_id][GameTag.ARTISTNAME] = {"enUS": artist}
+			self.record_card(id, card_id, long_guid, hero_power_id, artist)
 
-			if card_id not in self.entities:
-				self.warn("Entity %r not found in card defs but present in CARD.xml" % (card_id))
-				continue
+	def record_card(self, id, card_id, long_guid, hero_power_id, artist):
+		self.dbf_ids[id] = card_id
 
-			entity = self.entities[card_id]
-			entity.dbf_id = id
+		if long_guid:
+			self.guids[long_guid] = card_id
 
-			hero_power_id = record.get("HERO_POWER_ID")
-			if hero_power_id:
-				entity.tags[GameTag.HERO_POWER] = hero_power_id
+		if card_id not in self.entities:
+			self.warn("Entity %r not found in card defs but present in CARD dbf" % (card_id))
+			return
+
+		entity = self.entities[card_id]
+		if hero_power_id:
+			entity.tags[GameTag.HERO_POWER] = hero_power_id
+
+		entity.dbf_id = id
+
+		# Artist name is not localized in the new layout
+		self.entity_strings[card_id][GameTag.ARTISTNAME] = {"enUS": artist}
 
 	def parse_card_tag_dbf(self, path):
 		self.info("Processing CARD_TAG DBF %r" % (path))
@@ -260,17 +277,56 @@ class CardXMLProcessor:
 
 		for record in dbf.records:
 			dbf_id = record["CARD_ID"]
-			card_id = self.dbf_ids[dbf_id]
 			tag = record["TAG_ID"]
 			value = record["TAG_VALUE"]
 			is_reference = record["IS_REFERENCE_TAG"]
-			# ispower = record["IS_POWER_KEYWORD_TAG"]
-			if card_id not in self.entities:
-				self.warn("Entity %r not found in card defs but present in CARD_TAG.xml" % (card_id))
-			elif is_reference:
-				self.entities[card_id].referenced_tags[tag] = value
-			else:
-				self.entities[card_id].tags[tag] = value
+			is_power = record["IS_POWER_KEYWORD_TAG"]
+			self.record_card_tag(dbf_id, tag, value, is_reference, is_power)
+
+	def record_card_tag(self, dbf_id, tag, value, is_reference, is_power):
+		# TODO: is_power
+		card_id = self.dbf_ids[dbf_id]
+		if card_id not in self.entities:
+			self.warn("Entity %r not found in card defs but present in CARD_TAG DBF" % (card_id))
+		elif is_reference:
+			self.entities[card_id].referenced_tags[tag] = value
+		else:
+			self.entities[card_id].tags[tag] = value
+
+	def parse_dbf_unity(self, f):
+		bundle = unitypack.load(f)
+		asset = bundle.assets[0]
+		self.info("Processing DBFs as Unity3D bundle: %r" % (asset))
+		data = {}
+
+		for obj in asset.objects.values():
+			if obj.class_id == 114 and obj.type in ("CardDbfAsset", "CardTagDbfAsset"):
+				d = obj.read()
+				name = d["m_Name"]
+				records = d["Records"]
+				data[name] = records
+
+		for record in data["CARD"]:
+			id = record["m_ID"]
+			card_id = record["m_NoteMiniGuid"]
+			long_guid = record.get("m_LongGuid", "")
+			hero_power_id = None
+			artist = record.get("m_ArtistName", "")
+
+			self.entity_strings[card_id] = {}
+			for tag, _, column in self.tag_dbf_localized_columns:
+				r = record.get(column) or {}
+				self.entity_strings[card_id][tag] = unity_dbf_locale_to_dict(r)
+
+			self.record_card(id, card_id, long_guid, hero_power_id, artist)
+
+		for record in data["CARD_TAG"]:
+			dbf_id = record["m_CardId"]
+			tag = record["m_TagId"]
+			value = record["m_TagValue"]
+			is_reference = record["m_IsReferenceTag"]
+			is_power = record["m_IsPowerKeywordTag"]
+			self.record_card_tag(dbf_id, tag, value, is_reference, is_power)
 
 	def generate_xml(self):
 		self.info("Processing %i entities" % (len(self.entities)))
@@ -367,6 +423,8 @@ class CardXMLProcessor:
 		for f in self.args.files:
 			if self.args.raw:
 				self.parse_raw(f)
+			elif f.name == "dbf.unity3d":
+				self.parse_dbf_unity(f)
 			else:
 				self.parse_bundle(f)
 
