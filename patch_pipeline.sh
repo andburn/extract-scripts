@@ -60,7 +60,7 @@ DECOMPILED_DIR="$BUILDDIR/decompiled/$BUILD"
 COMMIT_BIN="$BASEDIR/commit.sh"
 
 # CardDefs.xml processing
-PROCESS_CARDXML_BIN="$BASEDIR/process_cardxml.py"
+PROCESS_CARDXML_BIN="$HEARTHSTONEJSON_GIT/process_cardxml.py"
 
 # Card texture extraction/generation script
 TEXTUREGEN_BIN="$HEARTHSTONEJSON_GIT/generate_card_textures.py"
