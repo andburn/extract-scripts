@@ -22,6 +22,7 @@ PROCESSED_DIR="$BUILDDIR/processed/$BUILD"
 
 # Git repositories
 HEARTHSTONEJSON_GIT="$BUILDDIR/HearthstoneJSON"
+SUNWELL_GIT="$BUILDDIR/Sunwell"
 HSFONTS_GIT="$BUILDDIR/hs-fonts.git"
 HSCODE_GIT="$BASEDIR/hscode.git"
 HSDATA_GIT="$BASEDIR/hsdata.git"
@@ -93,10 +94,14 @@ function upgrade_venv() {
 
 function update_repositories() {
 	echo "Updating repositories"
-	repos=("$BASEDIR" "$HEARTHSTONEJSON_GIT" "$HSFONTS_GIT" "$HSDATA_GIT" "$HSCODE_GIT")
+	repos=("$BASEDIR" "$HEARTHSTONEJSON_GIT" "$SUNWELL_GIT" "$HSFONTS_GIT" "$HSDATA_GIT" "$HSCODE_GIT")
 
 	if [[ ! -d "$HEARTHSTONEJSON_GIT" ]]; then
 		git clone git@github.com:HearthSim/HearthstoneJSON.git "$HEARTHSTONEJSON_GIT"
+	fi
+
+	if [[ ! -d "$SUNWELL_GIT" ]]; then
+		git clone git@github.com:HearthSim/Sunwell.git "$SUNWELL_GIT"
 	fi
 
 	if [[ ! -d "$HSFONTS_GIT" ]]; then
