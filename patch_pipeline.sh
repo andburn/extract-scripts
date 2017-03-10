@@ -86,7 +86,7 @@ function upgrade_venv() {
 		>&2 echo "Must be run from within a virtualenv"
 		exit 1
 	else
-		pip install --upgrade pip
+		pip install --upgrade pip setuptools
 		pip install -r "$REQUIREMENTS_TXT" --upgrade --no-cache-dir
 	fi
 }
