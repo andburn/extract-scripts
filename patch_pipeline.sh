@@ -11,9 +11,6 @@ if ! [[ $BUILD =~ $isnum ]]; then
 	exit 1
 fi
 
-# Base directory for large data files
-DATADIR="/mnt/home/ngdp"
-
 # Base build directory from extract-scripts
 BUILDDIR="$BASEDIR/build"
 
@@ -27,14 +24,13 @@ HSFONTS_GIT="$BUILDDIR/hs-fonts.git"
 HSCODE_GIT="$BASEDIR/hscode.git"
 HSDATA_GIT="$BASEDIR/hsdata.git"
 
-# Directory storing the 'hsb' blte config
-HSBDIR="$DATADIR/hsb"
 
-# Extraction path for 'hsb' blte
-NGDP_OUT="$HSBDIR/out"
+# Base and output path for 'hsb' blte
+NGDP_DIR="/mnt/home/ngdp"
+NGDP_OUT="$NGDP_DIR/out"
 
 # Directory storing the build data files
-HS_RAW_BUILDDIR="$DATADIR/data/ngdp/hsb/$BUILD"
+HS_RAW_BUILDDIR="/mnt/home/data/ngdp/hsb/$BUILD"
 
 # Directory that contains card textures
 CARDARTDIR="$BUILDDIR/card-art"
@@ -140,7 +136,7 @@ function prepare_patch_directories() {
 			echo "$HS_RAW_BUILDDIR already exists... skipping download checks."
 		else
 			if ! [[ -d "$NGDP_OUT" ]]; then
-				>&2 echo "No "$NGDP_OUT" directory. Run cd $HSBDIR && $DOWNLOAD_BIN"
+				>&2 echo "No "$NGDP_OUT" directory. Run cd $NGDP_DIR && $DOWNLOAD_BIN"
 				exit 2
 			fi
 			echo "Moving $NGDP_OUT to $HS_RAW_BUILDDIR"
