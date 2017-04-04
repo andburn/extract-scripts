@@ -132,6 +132,7 @@ function prepare_patch_directories() {
 	if [[ -e $HSBUILDDIR ]]; then
 		echo "$HSBUILDDIR already exists, not overwriting."
 	else
+		mkdir -p $(dirname "$HSBUILDDIR")
 		if [[ -d $HS_RAW_BUILDDIR ]]; then
 			echo "$HS_RAW_BUILDDIR already exists... skipping download checks."
 		else
