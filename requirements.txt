@@ -1,5 +1,7 @@
 awscli
+boto3
 hearthstone
+lxml
 lz4
 # mpq
 pillow
