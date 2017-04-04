@@ -90,7 +90,7 @@ function upgrade_venv() {
 
 function update_repositories() {
 	echo "Updating repositories"
-	repos=("$BASEDIR" "$HEARTHSTONEJSON_GIT" "$SUNWELL_GIT" "$HSFONTS_GIT" "$HSDATA_GIT" "$HSCODE_GIT")
+	repos=("$HEARTHSTONEJSON_GIT" "$SUNWELL_GIT" "$HSFONTS_GIT" "$HSDATA_GIT" "$HSCODE_GIT")
 
 	if [[ ! -d "$HEARTHSTONEJSON_GIT" ]]; then
 		git clone git@github.com:HearthSim/HearthstoneJSON.git "$HEARTHSTONEJSON_GIT"
