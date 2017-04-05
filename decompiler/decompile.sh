@@ -3,8 +3,8 @@ set -e
 
 mkdir -p "build/decompiler/"
 xbuild /property:OutputPath="build/decompiler/" ILSpy/ICSharpCode.Decompiler/ICSharpCode.Decompiler.csproj
-exit
-dmcs -out:build/decompile.exe ../decompile.cs \
+cp build/decompiler/*.dll .
+mcs -out:build/decompile.exe ../decompile.cs \
 	-r:Mono.Cecil.dll \
 	-r:ICSharpCode.Decompiler.dll \
 	-r:ICSharpCode.NRefactory.dll \

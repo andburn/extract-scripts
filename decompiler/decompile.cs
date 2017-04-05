@@ -31,7 +31,6 @@ static class Decompiler
 
 		var assemblies = new AssemblyList("global");
 		var assembly = assemblies.OpenAssembly(args[0]);
-		assembly.WaitUntilLoaded();
 		var root = new AssemblyTreeNode(assembly);
 		root.Decompile(new CSharpLanguage(), new PlainTextOutput(), new DecompilationOptions
 		{
@@ -39,7 +38,7 @@ static class Decompiler
 			FullDecompilation = true,
 			DecompilerSettings = new DecompilerSettings
 			{
-				YieldReturn = false
+				YieldReturn = true
 			}
 		});
 		return 0;
@@ -84,7 +83,6 @@ namespace TextView
 			public readonly Language Language;
 			public readonly ILSpyTreeNode[] TreeNodes;
 			public readonly DecompilationOptions Options;
-			public readonly TaskCompletionSource<object> TaskCompletionSource = new TaskCompletionSource<object>();
 
 			public DecompilationContext(Language language, ILSpyTreeNode[] treeNodes, DecompilationOptions options)
 			{
@@ -679,22 +677,18 @@ namespace ICSharpCode.ILSpy
 						return Path.Combine(dir, file);
 					}
 				}, StringComparer.OrdinalIgnoreCase).ToList();
-			AstMethodBodyBuilder.ClearUnhandledOpcodes();
-			Parallel.ForEach(
-				files,
-				new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount },
-				delegate (IGrouping<string, TypeDefinition> file) {
-					using (StreamWriter w = new StreamWriter(Path.Combine(options.SaveAsProjectDirectory, file.Key)))
+			foreach (IGrouping<string, TypeDefinition> file in files) {
+				using (StreamWriter w = new StreamWriter(Path.Combine(options.SaveAsProjectDirectory, file.Key)))
+				{
+					AstBuilder codeDomBuilder = CreateAstBuilder(options, currentModule: module);
+					foreach (TypeDefinition type in file)
 					{
-						AstBuilder codeDomBuilder = CreateAstBuilder(options, currentModule: module);
-						foreach (TypeDefinition type in file)
-						{
-							codeDomBuilder.AddType(type);
-						}
-						codeDomBuilder.RunTransformations(transformAbortCondition);
-						codeDomBuilder.GenerateCode(new PlainTextOutput(w));
+						codeDomBuilder.AddType(type);
 					}
-				});
+					codeDomBuilder.RunTransformations(transformAbortCondition);
+					codeDomBuilder.GenerateCode(new PlainTextOutput(w));
+				}
+			}
 			AstMethodBodyBuilder.PrintNumberOfUnhandledOpcodes();
 			return files.Select(f => Tuple.Create("Compile", f.Key)).Concat(WriteAssemblyInfo(module, options, directories));
 		}
@@ -990,7 +984,7 @@ namespace ICSharpCode.ILSpy
 	/// </summary>
 	public sealed class LoadedAssembly
 	{
-		readonly Task<ModuleDefinition> assemblyTask;
+		readonly ModuleDefinition assembly;
 		readonly AssemblyList assemblyList;
 		readonly string fileName;
 		readonly string shortName;
@@ -1004,7 +998,7 @@ namespace ICSharpCode.ILSpy
 			this.assemblyList = assemblyList;
 			this.fileName = fileName;
 
-			this.assemblyTask = Task.Factory.StartNew<ModuleDefinition>(LoadAssembly, stream); // requires that this.fileName is set
+			this.assembly = LoadAssembly(stream); // requires that this.fileName is set
 			this.shortName = Path.GetFileNameWithoutExtension(fileName);
 		}
 
@@ -1018,7 +1012,7 @@ namespace ICSharpCode.ILSpy
 			{
 				try
 				{
-					return assemblyTask.Result;
+					return assembly;
 				}
 				catch (AggregateException)
 				{
@@ -1072,19 +1066,18 @@ namespace ICSharpCode.ILSpy
 
 		public bool IsLoaded
 		{
-			get { return assemblyTask.IsCompleted; }
+			get { return assembly != null; }
 		}
 
 		public bool HasLoadError
 		{
-			get { return assemblyTask.IsFaulted; }
+			get { return assembly == null; }
 		}
 
 		public bool IsAutoLoaded { get; set; }
 
-		ModuleDefinition LoadAssembly(object state)
+		ModuleDefinition LoadAssembly(Stream stream)
 		{
-			var stream = state as Stream;
 			ModuleDefinition module;
 
 			// runs on background thread
@@ -1103,9 +1096,6 @@ namespace ICSharpCode.ILSpy
 			}
 			return module;
 		}
-
-		[ThreadStatic]
-		static int assemblyLoadDisableCount;
 
 		sealed class MyAssemblyResolver : IAssemblyResolver
 		{
@@ -1172,8 +1162,6 @@ namespace ICSharpCode.ILSpy
 				if (asm.AssemblyDefinition != null && fullName.Equals(asm.AssemblyDefinition.FullName, StringComparison.OrdinalIgnoreCase))
 					return asm;
 			}
-			if (assemblyLoadDisableCount > 0)
-				return null;
 
 			var name = AssemblyNameReference.Parse(fullName);
 			string file = null;
@@ -1203,8 +1191,6 @@ namespace ICSharpCode.ILSpy
 				if (asm.AssemblyDefinition != null && name.Equals(asm.AssemblyDefinition.Name.Name, StringComparison.OrdinalIgnoreCase))
 					return asm;
 			}
-			if (assemblyLoadDisableCount > 0)
-				return null;
 
 			string file = Path.Combine(Environment.SystemDirectory, "WinMetadata", name + ".winmd");
 			if (File.Exists(file))
@@ -1215,20 +1201,6 @@ namespace ICSharpCode.ILSpy
 			{
 				return null;
 			}
-		}
-
-		public Task ContinueWhenLoaded(Action<Task<ModuleDefinition>> onAssemblyLoaded, TaskScheduler taskScheduler)
-		{
-			return this.assemblyTask.ContinueWith(onAssemblyLoaded, taskScheduler);
-		}
-
-		/// <summary>
-		/// Wait until the assembly is loaded.
-		/// Throws an AggregateException when loading the assembly fails.
-		/// </summary>
-		public void WaitUntilLoaded()
-		{
-			assemblyTask.Wait();
 		}
 	}
 
@@ -1456,7 +1428,6 @@ namespace ICSharpCode.ILSpy.TreeNodes
 
 		public override void Decompile(Language language, ITextOutput output, DecompilationOptions options)
 		{
-			assembly.WaitUntilLoaded(); // necessary so that load errors are passed on to the caller
 			language.DecompileAssembly(assembly, output, options);
 		}
 
