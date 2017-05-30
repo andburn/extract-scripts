@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 set -e
 
@@ -70,9 +70,6 @@ SMARTDIFF_BIN="$BASEDIR/smartdiff_cardxml.py"
 # Smartdiff output file
 SMARTDIFF_OUT="$HOME/smartdiff-$BUILD.txt"
 
-# CardDefs.xml path for the build
-CARDDEFS_XML="$HSDATA_GIT/CardDefs.xml"
-
 # Python requirements for the various scripts
 REQUIREMENTS_TXT="$BASEDIR/requirements.txt"
 
@@ -132,12 +129,12 @@ function prepare_patch_directories() {
 	if [[ -e $HSBUILDDIR ]]; then
 		echo "$HSBUILDDIR already exists, not overwriting."
 	else
-		mkdir -p $(dirname "$HSBUILDDIR")
+		mkdir -p "$(dirname $HSBUILDDIR)"
 		if [[ -d $HS_RAW_BUILDDIR ]]; then
 			echo "$HS_RAW_BUILDDIR already exists... skipping download checks."
 		else
 			if ! [[ -d "$NGDP_OUT" ]]; then
-				>&2 echo "No "$NGDP_OUT" directory. Run cd $NGDP_DIR && $DOWNLOAD_BIN"
+				>&2 echo "No '$NGDP_OUT' directory. Run cd $NGDP_DIR && $DOWNLOAD_BIN"
 				exit 2
 			fi
 			echo "Moving $NGDP_OUT to $HS_RAW_BUILDDIR"
@@ -157,12 +154,7 @@ function process_cardxml() {
 	# Panic? cardxml_raw_extract.py can extract the raw carddefs
 	# Coupled with a manual process_cardxml.py --raw, can gen CardDefs.xml
 
-	outfile="$PROCESSED_DIR/CardDefs.xml"
-	datadir="$HSBUILDDIR/Data"
-	dbf=$(find -L "$HSBUILDDIR" -name DBF -type d)
-	unitydbf=$(find -L "$HSBUILDDIR" -name "dbf.unity3d" -type f)
-
-	"$PROCESS_CARDXML_BIN" "$HSBUILDDIR" -o "$outfile"
+	"$PROCESS_CARDXML_BIN" "$HSBUILDDIR" -o "$PROCESSED_DIR/CardDefs.xml"
 	cp -rf "$HSBUILDDIR/Strings" -t "$PROCESSED_DIR"
 }
 
