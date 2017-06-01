@@ -15,7 +15,7 @@ def card_diff(first, other):
 	for tag, value in other.tags.items():
 		old_value = first.tags.get(tag, None)
 		if value != old_value:
-			if tag.string_type:
+			if not isinstance(tag, int) and tag.string_type:
 				ret["text"][tag] = (old_value, value)
 			else:
 				ret["tags"][tag] = (old_value, value)
