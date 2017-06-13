@@ -2,7 +2,7 @@
 
 set -e
 
-BASEDIR="$(readlink -f $(dirname $0))"
+BASEDIR="$(readlink -f "$(dirname "$0")")"
 BUILD="$1"
 
 isnum='^[0-9]+$'
@@ -109,7 +109,7 @@ function update_repositories() {
 		git clone git@github.com:HearthSim/hscode.git "$HSCODE_GIT"
 	fi
 
-	for repo in $repos; do
+	for repo in "${repos[@]}"; do
 		git -C "$repo" pull
 	done
 }
@@ -129,7 +129,7 @@ function prepare_patch_directories() {
 	if [[ -e $HSBUILDDIR ]]; then
 		echo "$HSBUILDDIR already exists, not overwriting."
 	else
-		mkdir -p "$(dirname $HSBUILDDIR)"
+		mkdir -p "$(dirname "$HSBUILDDIR")"
 		if [[ -d $HS_RAW_BUILDDIR ]]; then
 			echo "$HS_RAW_BUILDDIR already exists... skipping download checks."
 		else

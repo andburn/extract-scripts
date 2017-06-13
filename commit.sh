@@ -1,5 +1,5 @@
 #!/bin/bash
-BASEDIR="$(readlink -f $(dirname $0))"
+BASEDIR="$(readlink -f "$(dirname "$0")")"
 BUILDDIR="$BASEDIR/build"
 GH="git@github.com:HearthSim"
 GL="git@gitlab.com:HearthSim"
@@ -121,8 +121,8 @@ function _commit() {
 	BUILD=$2
 	REPO="$BASEDIR/$PROJECT.git"
 	GIT="git -C $REPO"
-	patch=$(printf "${patches[$BUILD]}" | cut -f1 -d " ")
-	date="$(printf "${patches[$BUILD]}" | cut -f2 -d " ") 12:00:00 +0000"
+	patch=$(printf "%s" "${patches[$BUILD]}" | cut -f1 -d " ")
+	date="$(printf "%s" "${patches[$BUILD]}" | cut -f2 -d " ") 12:00:00 +0000"
 	dir="${directories[$PROJECT]}/$BUILD"
 	export GIT_AUTHOR_DATE="$date"
 	export GIT_COMMITTER_DATE="$date"
@@ -131,11 +131,11 @@ function _commit() {
 	echo "Committing $PROJECT for $patch.$BUILD"
 
 	sed -i "s/Version: .*/Version: $patch.$BUILD/" "$REPO/README.md"
-	_update-$PROJECT
+	"_update-$PROJECT"
 
 	$GIT add "$REPO" &>/dev/null
 	$GIT commit -am "Update to patch $patch.$BUILD" &>/dev/null
-	$GIT tag -fam "Patch $patch.$BUILD" $BUILD
+	$GIT tag -fam "Patch $patch.$BUILD" "$BUILD"
 }
 
 function _push() {
