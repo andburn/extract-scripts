@@ -51,6 +51,7 @@ DOWNLOAD_BIN="$HOME/bin/ngdp-get"
 DECOMPILER_BIN="$BASEDIR/decompiler/build/decompile.exe"
 
 DECOMPILED_DIR="$BUILDDIR/decompiled/$BUILD"
+DECOMPILED_OSX_DIR="$BUILDDIR/OSX-decompiled/$BUILD"
 
 # Autocommit script
 COMMIT_BIN="$BASEDIR/commit.sh"
@@ -159,16 +160,26 @@ function process_cardxml() {
 }
 
 
-function decompile_code() {
-	mkdir -p "$PROCESSED_DIR"
+function _decompile() {
+	mkdir -p "$2"
+	mono "$DECOMPILER_BIN" "$1/Assembly-CSharp.dll" "$2"
+	mono "$DECOMPILER_BIN" "$1/Assembly-CSharp-firstpass.dll" "$2"
+}
 
-	echo "Decompiling the Assemblies"
 
-	acdll="$HSBUILDDIR/Hearthstone_Data/Managed/Assembly-CSharp.dll"
-	acfdll="$HSBUILDDIR/Hearthstone_Data/Managed/Assembly-CSharp-firstpass.dll"
+function decompile_code_win() {
+	echo "Decompiling the Assemblies (Win)"
 
-	mono "$DECOMPILER_BIN" "$acdll" "$DECOMPILED_DIR"
-	mono "$DECOMPILER_BIN" "$acfdll" "$DECOMPILED_DIR"
+	dlldir="$HSBUILDDIR/Hearthstone_Data/Managed"
+	_decompile "$dlldir" "$DECOMPILED_DIR"
+}
+
+
+function decompile_code_osx() {
+	echo "Decompiling the Assemblies (OSX)"
+
+	dlldir="$HSBUILDDIR/Hearthstone.app/Contents/Resources/Data/Managed"
+	_decompile "$dlldir" "$DECOMPILED_OSX_DIR"
 }
 
 
@@ -190,6 +201,7 @@ function generate_git_repositories() {
 	echo "Pushing to GitHub"
 	git -C "$HSDATA_GIT" push --follow-tags -f
 	git -C "$HSCODE_GIT" push --follow-tags -f
+	git -C "$HSCODE_GIT" push --follow-tags -f origin OSX:OSX
 }
 
 
@@ -227,7 +239,8 @@ function main() {
 	check_commit_sh
 	prepare_patch_directories
 	process_cardxml
-	decompile_code
+	decompile_code_win
+	decompile_code_osx
 	generate_git_repositories
 	generate_smartdiff
 	extract_card_textures

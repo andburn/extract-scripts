@@ -114,6 +114,13 @@ function _init-repo() {
 	$GIT commit -m "Initial commit"
 	$GIT config branch.master.remote origin
 	$GIT config branch.master.merge refs/heads/master
+
+	if [[ $PROJECT == "hscode" ]]; then
+		git checkout -b OSX
+		$GIT config branch.OSX.remote origin
+		$GIT config branch.OSX.merge refs/heads/OSX
+		git checkout master
+	fi
 }
 
 function _commit() {
@@ -142,6 +149,10 @@ function _push() {
 	PROJECT=$1
 	REPO="$BASEDIR/$PROJECT.git"
 	git -C "$REPO" push --set-upstream --follow-tags -f origin master
+
+	if [[ $PROJECT == "hscode" ]]; then
+		git -C "$REPO" push --set-upstream --follow-tags -f origin OSX:OSX
+	fi
 }
 
 function _update-hsdata() {
@@ -154,6 +165,19 @@ function _update-hsdata() {
 }
 
 function _update-hscode() {
+	osxdir="$BUILDDIR/OSX-decompiled/$BUILD"
+
+	# Commit OSX branch first
+	git checkout OSX
+	rm -rf "$REPO"/*.cs "$REPO"/**/*.cs
+	cp -rf "$osxdir"/* "$REPO"
+	sed -i "s/Version: .*/Version: $patch.$BUILD/" "$REPO/README.md"
+	$GIT add "$REPO" &>/dev/null
+	$GIT commit -am "[OSX] Update to patch $patch.$BUILD" &>/dev/null
+	$GIT tag -fam "OSX Patch $patch.$BUILD" "OSX/$BUILD"
+
+	# Done, master now
+	git checkout master
 	rm -rf "$REPO"/*.cs "$REPO"/**/*.cs
 	cp -rf "$dir"/* "$REPO"
 }
