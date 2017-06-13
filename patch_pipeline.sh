@@ -174,10 +174,17 @@ function decompile_code() {
 
 function generate_git_repositories() {
 	echo "Generating git repositories"
+
 	if ! git -C "$HSDATA_GIT" rev-parse "$BUILD" &>/dev/null; then
-		"$COMMIT_BIN" "$BUILD"
+		"$COMMIT_BIN" "hsdata" "$BUILD"
 	else
 		echo "Tag $BUILD already present in $HSDATA_GIT - Not committing."
+	fi
+
+	if ! git -C "$HSCODE_GIT" rev-parse "$BUILD" &>/dev/null; then
+		"$COMMIT_BIN" "hscode" "$BUILD"
+	else
+		echo "Tag $BUILD already present in $HSCODE_GIT - Not committing."
 	fi
 
 	echo "Pushing to GitHub"
