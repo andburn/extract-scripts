@@ -117,10 +117,10 @@ function _init-repo() {
 	$GIT config branch.master.merge refs/heads/master
 
 	if [[ $PROJECT == "hscode" ]]; then
-		git checkout -b OSX
+		$GIT checkout -b OSX
 		$GIT config branch.OSX.remote origin
 		$GIT config branch.OSX.merge refs/heads/OSX
-		git checkout master
+		$GIT checkout master
 	fi
 }
 
@@ -169,7 +169,7 @@ function _update-hscode() {
 	osxdir="$BUILDDIR/OSX-decompiled/$BUILD"
 
 	# Commit OSX branch first
-	git checkout OSX
+	$GIT checkout OSX
 	rm -rf "$REPO"/*.cs "$REPO"/**/*.cs
 	cp -rf "$osxdir"/* "$REPO"
 	sed -i "s/Version: .*/Version: $patch.$BUILD/" "$REPO/README.md"
@@ -178,7 +178,7 @@ function _update-hscode() {
 	$GIT tag -fam "OSX Patch $patch.$BUILD" "OSX/$BUILD"
 
 	# Done, master now
-	git checkout master
+	$GIT checkout master
 	rm -rf "$REPO"/*.cs "$REPO"/**/*.cs
 	cp -rf "$dir"/* "$REPO"
 }
