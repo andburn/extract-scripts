@@ -138,9 +138,9 @@ function _commit() {
 	[[ -d "$dir" ]] || return
 	echo "Committing $PROJECT for $patch.$BUILD"
 
-	sed -i "s/Version: .*/Version: $patch.$BUILD/" "$REPO/README.md"
 	"_update-$PROJECT"
 
+	sed -i "s/Version: .*/Version: $patch.$BUILD/" "$REPO/README.md"
 	$GIT add "$REPO" &>/dev/null
 	$GIT commit -am "Update to patch $patch.$BUILD" &>/dev/null
 	$GIT tag -fam "Patch $patch.$BUILD" "$BUILD"
