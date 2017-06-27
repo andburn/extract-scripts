@@ -1,4 +1,5 @@
 awscli
+blowfish
 boto3
 hearthstone
 lxml

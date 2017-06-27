@@ -49,6 +49,7 @@ DOWNLOAD_BIN="$HOME/bin/ngdp-get"
 
 # ILSpy decompiler script
 DECOMPILER_BIN="$BASEDIR/decompiler/build/decompile.exe"
+DECRYPT_BIN="$BASEDIR/decompiler/decrypt.py"
 
 DECOMPILED_DIR="$BUILDDIR/decompiled/$BUILD"
 DECOMPILED_OSX_DIR="$BUILDDIR/OSX-decompiled/$BUILD"
@@ -162,7 +163,9 @@ function process_cardxml() {
 
 function _decompile() {
 	mkdir -p "$2"
-	mono "$DECOMPILER_BIN" "$1/Assembly-CSharp.dll" "$2"
+	python3 "$DECRYPT_BIN" "$1/Assembly-CSharp.dll" "/tmp/Assembly-CSharp.dll"
+	mono "$DECOMPILER_BIN" "/tmp/Assembly-CSharp.dll" "$2"
+	rm -f "/tmp/Assembly-CSharp.dll"
 	mono "$DECOMPILER_BIN" "$1/Assembly-CSharp-firstpass.dll" "$2"
 }
 
