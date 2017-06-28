@@ -163,9 +163,9 @@ function process_cardxml() {
 
 function _decompile() {
 	mkdir -p "$2"
-	python3 "$DECRYPT_BIN" "$1/Assembly-CSharp.dll" "/tmp/Assembly-CSharp.dll"
-	mono "$DECOMPILER_BIN" "/tmp/Assembly-CSharp.dll" "$2"
-	rm -f "/tmp/Assembly-CSharp.dll"
+	python3 "$DECRYPT_BIN" "$1/Assembly-CSharp.dll" "$1/Assembly-CSharp.decrypted.dll"
+	mono "$DECOMPILER_BIN" "$1/Assembly-CSharp.decrypted.dll" "$2"
+	rm -f "$1/Assembly-CSharp.decrypted.dll"
 	mono "$DECOMPILER_BIN" "$1/Assembly-CSharp-firstpass.dll" "$2"
 }
 
