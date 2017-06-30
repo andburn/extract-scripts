@@ -15,6 +15,7 @@ all: decompile.exe
 
 depends:
 	$(eval csproj := ILSpy/ICSharpCode.Decompiler/ICSharpCode.Decompiler.csproj)
+	$(MSBUILD_BIN) $(csproj)
 	$(MSBUILD_BIN) /property:OutputPath=$(BUILD_DIR) $(csproj)
 
 decompile.exe: depends
