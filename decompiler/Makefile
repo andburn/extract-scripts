@@ -1,7 +1,7 @@
 MAKEFILE := $(lastword $(MAKEFILE_LIST))
 BASE_DIR := .
 BUILD_DIR := $(BASE_DIR)/build
-XBUILD_BIN := xbuild
+MSBUILD_BIN := msbuild
 LIBS := Mono.Cecil.dll ICSharpCode.Decompiler.dll ICSharpCode.NRefactory.dll ICSharpCode.NRefactory.CSharp.dll
 
 SOURCES := decompile.cs
@@ -15,7 +15,7 @@ all: decompile.exe
 
 depends:
 	$(eval csproj := ILSpy/ICSharpCode.Decompiler/ICSharpCode.Decompiler.csproj)
-	$(XBUILD_BIN) /property:OutputPath=$(BUILD_DIR) $(csproj)
+	$(MSBUILD_BIN) /property:OutputPath=$(BUILD_DIR) $(csproj)
 
 decompile.exe: depends
 	cp $(foreach lib,$(LIBS),ILSpy/ICSharpCode.Decompiler/$(BUILD_DIR)/$(lib)) $(BUILD_DIR)
