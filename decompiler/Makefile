@@ -20,6 +20,8 @@ depends:
 	$(GIT_BIN) -C $(BASE_DIR) submodule update
 	$(GIT_BIN) -C $(ILSPY_DIR) submodule init
 	$(GIT_BIN) -C $(ILSPY_DIR) submodule update
+	$(GIT_BIN) -C $(ILSPY_DIR) reset --hard
+	$(GIT_BIN) -C $(ILSPY_DIR) apply $(BASE_DIR)/short-circuit.patch
 	$(eval csproj := ILSpy/ICSharpCode.Decompiler/ICSharpCode.Decompiler.csproj)
 	$(MSBUILD_BIN) $(csproj)
 	$(MSBUILD_BIN) /property:OutputPath=$(BUILD_DIR) $(csproj)
