@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import argparse
 import binascii
 import sys
 import blowfish
