@@ -23,6 +23,7 @@ SUNWELL_GIT="$BUILDDIR/Sunwell"
 HSFONTS_GIT="$BUILDDIR/hs-fonts.git"
 HSCODE_GIT="$BASEDIR/hscode.git"
 HSDATA_GIT="$BASEDIR/hsdata.git"
+HSPROTO_GIT="$BASEDIR/hsproto.git"
 
 
 # Base and output path for 'hsb' blte
@@ -53,6 +54,16 @@ DECRYPT_BIN="$BASEDIR/decompiler/decrypt.py"
 
 DECOMPILED_DIR="$BUILDDIR/decompiled/$BUILD"
 DECOMPILED_OSX_DIR="$BUILDDIR/OSX-decompiled/$BUILD"
+
+# Directory for decompiled protofiles
+# Matches constant in commit.sh
+PROTO_DIR="$BUILDDIR/protos"
+
+# Script that delegates the placement of certain proto files
+# This file should be copied from Proto-Extractor repo
+PROTO_PACKAGE_FILE = "$BASEDIR/proto-extractor/packaging.ini"
+# This file should be build (with dependancies copied) from Proto-Extractor repo
+PROTO_EXTRACTOR_BIN="$BASEDIR/proto-extractor/build/proto-extractor.exe"
 
 # Autocommit script
 COMMIT_BIN="$BASEDIR/commit.sh"
@@ -89,7 +100,7 @@ function upgrade_venv() {
 
 function update_repositories() {
 	echo "Updating repositories"
-	repos=("$HEARTHSTONEJSON_GIT" "$SUNWELL_GIT" "$HSFONTS_GIT" "$HSDATA_GIT" "$HSCODE_GIT")
+	repos=("$HEARTHSTONEJSON_GIT" "$SUNWELL_GIT" "$HSFONTS_GIT" "$HSDATA_GIT" "$HSCODE_GIT" "$HSPROTO_GIT")
 
 	if [[ ! -d "$HEARTHSTONEJSON_GIT" ]]; then
 		git clone git@github.com:HearthSim/HearthstoneJSON.git "$HEARTHSTONEJSON_GIT"
@@ -109,6 +120,10 @@ function update_repositories() {
 
 	if [[ ! -d "$HSCODE_GIT" ]]; then
 		git clone git@github.com:HearthSim/hscode.git "$HSCODE_GIT"
+	fi
+
+	if [[ ! -d "$HSPROTO_GIT" ]]; then
+		git clone git@github.com:HearthSim/hsproto.git "$HSPROTO_GIT"
 	fi
 
 	for repo in "${repos[@]}"; do
@@ -185,6 +200,20 @@ function decompile_code_osx() {
 	_decompile "$dlldir" "$DECOMPILED_OSX_DIR"
 }
 
+function extract_protos() {
+	echo "Extracting proto files from binaries"
+
+	dlldir="$HSBUILDDIR/Hearthstone_Data/Managed"
+	dll_primary="$dlldir/Assembly-CSharp.decrypted.dll"
+	dll_firstpass="$dlldir/Assembly-CSharp-firstpass.dll"
+
+	# TODO(bert); Compile proto-extractor from linked sub-repo
+
+	mono "$PROTO_EXTRACTOR_BIN" --libPath "$dlldir" --outPath "$PROTO_DIR" \
+		--proto3 --automatic-packaging --manual-package-file "$PROTO_PACKAGE_FILE" \
+		"$dll_primary" "$dll_firstpass"
+}
+
 
 function generate_git_repositories() {
 	echo "Generating git repositories"
@@ -201,10 +230,17 @@ function generate_git_repositories() {
 		echo "Tag $BUILD already present in $HSCODE_GIT - Not committing."
 	fi
 
+	if ! git -C "$HSPROTO_GIT" rev-parse "$BUILD" &>/dev/null; then
+		"$COMMIT_BIN" "hsproto" "$BUILD"
+	else
+		echo "Tag $BUILD already present in $HSPROTO_GIT - Not committing."
+	fi
+
 	echo "Pushing to GitHub"
 	git -C "$HSDATA_GIT" push --follow-tags -f
 	git -C "$HSCODE_GIT" push --follow-tags -f
 	git -C "$HSCODE_GIT" push --follow-tags -f origin OSX:OSX
+	git -C "$HSPROTO_GIT" push --follow-tags -f
 }
 
 
@@ -244,6 +280,7 @@ function main() {
 	process_cardxml
 	decompile_code_win
 	decompile_code_osx
+	extract_protos
 	generate_git_repositories
 	generate_smartdiff
 	extract_card_textures
