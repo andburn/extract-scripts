@@ -25,7 +25,6 @@ depends:
 	$(MSBUILD_BIN) /property:OutputPath=$(BUILD_DIR) $(csproj)
 
 decompile.exe: depends
-	cp $(foreach lib,$(LIBS),ILSpy/ICSharpCode.Decompiler/$(BUILD_DIR)/$(lib)) $(BUILD_DIR)
 	$(eval flags := $(foreach lib,$(LIBS),-r:$(BUILD_DIR)/$(lib)))
 	mcs -debug -out:$(BUILD_DIR)/$(patsubst %.cs,%.exe,$@) $(flags) $(SOURCES)
 
