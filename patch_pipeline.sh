@@ -61,9 +61,9 @@ PROTO_DIR="$BUILDDIR/protos"
 
 # Script that delegates the placement of certain proto files
 # This file should be copied from Proto-Extractor repo
-PROTO_PACKAGE_FILE = "$BASEDIR/proto-extractor/packaging.ini"
+PROTO_PACKAGE_FILE="$BASEDIR/proto-extractor/build/packaging.ini"
 # This file should be build (with dependancies copied) from Proto-Extractor repo
-PROTO_EXTRACTOR_BIN="$BASEDIR/proto-extractor/build/proto-extractor.exe"
+PROTO_EXTRACTOR_BIN="$BASEDIR/proto-extractor/build/extractor.dll"
 
 # Autocommit script
 COMMIT_BIN="$BASEDIR/commit.sh"
@@ -201,15 +201,15 @@ function decompile_code_osx() {
 }
 
 function extract_protos() {
-	echo "Extracting proto files from binaries"
+	echo "Extracting PROTOS"
 
+	# Libdir is taken from Windows decompilation
 	dlldir="$HSBUILDDIR/Hearthstone_Data/Managed"
+	# The primary dll should have been decrypted already
 	dll_primary="$dlldir/Assembly-CSharp.decrypted.dll"
 	dll_firstpass="$dlldir/Assembly-CSharp-firstpass.dll"
 
-	# TODO(bert); Compile proto-extractor from linked sub-repo
-
-	mono "$PROTO_EXTRACTOR_BIN" --libPath "$dlldir" --outPath "$PROTO_DIR" \
+	dotnet "$PROTO_EXTRACTOR_BIN" --libPath "$dlldir" --outPath "$PROTO_DIR" \
 		--proto3 --automatic-packaging --manual-package-file "$PROTO_PACKAGE_FILE" \
 		"$dll_primary" "$dll_firstpass"
 }

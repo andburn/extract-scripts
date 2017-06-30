@@ -185,7 +185,8 @@ function _update-hscode() {
 }
 
 function _update-hsproto() {
-	rm -rf "$REPO/bnet" "$REPO/pegasus"
+	# Deletes everything except hidden files
+	rm -rf $REPO/*
 	cp -rf "$dir"/* "$REPO"
 }
 
