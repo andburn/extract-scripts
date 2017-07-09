@@ -217,7 +217,7 @@ function extract_protos() {
 		"$dll_primary" "$dll_firstpass"
 
 	# Remove the decrypted dll file
-	rm -f "$1/Assembly-CSharp.decrypted.dll"
+	rm -f "$dlldir/Assembly-CSharp.decrypted.dll"
 }
 
 
