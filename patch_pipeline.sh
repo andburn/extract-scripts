@@ -202,6 +202,7 @@ function decompile_code_osx() {
 
 function extract_protos() {
 	echo "Extracting PROTOS"
+	mkdir -p "$PROTO_DIR"
 
 	# First decrypt libraries for Windows context
 	dlldir="$HSBUILDDIR/Hearthstone_Data/Managed"
