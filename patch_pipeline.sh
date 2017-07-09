@@ -203,15 +203,20 @@ function decompile_code_osx() {
 function extract_protos() {
 	echo "Extracting PROTOS"
 
-	# Libdir is taken from Windows decompilation
+	# First decrypt libraries for Windows context
 	dlldir="$HSBUILDDIR/Hearthstone_Data/Managed"
-	# The primary dll should have been decrypted already
+	python3 "$DECRYPT_BIN" "$dlldir/Assembly-CSharp.dll" "$dlldir/Assembly-CSharp.decrypted.dll"
+
 	dll_primary="$dlldir/Assembly-CSharp.decrypted.dll"
 	dll_firstpass="$dlldir/Assembly-CSharp-firstpass.dll"
 
+	# Run the Proto-Extractor on the libraries above
 	dotnet "$PROTO_EXTRACTOR_BIN" --libPath "$dlldir" --outPath "$PROTO_DIR" \
 		--proto3 --automatic-packaging --manual-package-file "$PROTO_PACKAGE_FILE" \
 		"$dll_primary" "$dll_firstpass"
+
+	# Remove the decrypted dll file
+	rm -f "$1/Assembly-CSharp.decrypted.dll"
 }
 
 
