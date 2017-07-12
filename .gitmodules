@@ -3,4 +3,5 @@
 	url = https://github.com/HearthSim/ILSpy.git
 [submodule "proto-extractor/proto-extractor"]
 	path = proto-extractor/proto-extractor
-	url = https://github.com/HearthSim/proto-extractor.git
+	url = https://github.com/HearthSim/proto-extractor
+	branch = master
