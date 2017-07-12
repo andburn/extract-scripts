@@ -186,8 +186,8 @@ function _update-hscode() {
 }
 
 function _update-hsproto() {
-	# Deletes everything except hidden files
-	rm -rf "$REPO"/*
+	# Deletes every directory
+	rm -rf "$REPO"/*/
 	cp -rf "$dir"/* "$REPO"
 }
 
