@@ -57,7 +57,7 @@ DECOMPILED_OSX_DIR="$BUILDDIR/OSX-decompiled/$BUILD"
 
 # Directory for decompiled protofiles
 # Matches constant in commit.sh
-PROTO_DIR="$BUILDDIR/protos"
+PROTO_DIR="$BUILDDIR/protos/$BUILD"
 
 # Script that delegates the placement of certain proto files
 # This file should be copied from Proto-Extractor repo
