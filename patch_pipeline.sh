@@ -63,7 +63,7 @@ PROTO_DIR="$BUILDDIR/protos"
 # This file should be copied from Proto-Extractor repo
 PROTO_PACKAGE_FILE="$BASEDIR/proto-extractor/build/packaging.ini"
 # This file should be build (with dependancies copied) from Proto-Extractor repo
-PROTO_EXTRACTOR_BIN="$BASEDIR/proto-extractor/build/extractor.dll"
+PROTO_EXTRACTOR_BIN="$BASEDIR/proto-extractor/build/mono-extractor.exe"
 
 # Autocommit script
 COMMIT_BIN="$BASEDIR/commit.sh"
@@ -212,7 +212,7 @@ function extract_protos() {
 	dll_firstpass="$dlldir/Assembly-CSharp-firstpass.dll"
 
 	# Run the Proto-Extractor on the libraries above
-	dotnet "$PROTO_EXTRACTOR_BIN" --libPath "$dlldir" --outPath "$PROTO_DIR" \
+	mono "$PROTO_EXTRACTOR_BIN" --libPath "$dlldir" --outPath "$PROTO_DIR" \
 		--proto3 --automatic-packaging --manual-package-file "$PROTO_PACKAGE_FILE" \
 		"$dll_primary" "$dll_firstpass"
 
