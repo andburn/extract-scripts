@@ -273,7 +273,7 @@ function update_hearthstonejson() {
 
 function extract_card_textures() {
 	echo "Extracting card textures"
-	"$TEXTUREGEN_BIN" "$HSBUILDDIR/Data/Win/"{card,shared}*.unity3d --outdir="$CARDARTDIR" --skip-existing
+	"$TEXTUREGEN_BIN" "$HSBUILDDIR/Data/Win/"{card,premiummaterials,shared}*.unity3d --outdir="$CARDARTDIR" --skip-existing
 	"$TEXTURESYNC_BIN" sync-textures "$CARDARTDIR"
 }
 
